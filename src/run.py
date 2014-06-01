@@ -69,11 +69,12 @@ for i in xmlFiles:
 i = 0
 
 for key in pairs:
-  print i, ' done, ', len(pairs)-i, ' to go\n'
   i +=1
   location = download_prefix + key
-  local_name = format_filename([key][0]) + '.mp3'
+  local_name = format_filename(pairs[key][0]) + '.mp3'
   directory = pairs[key][3].partition('.')[0]
   if not os.path.exists(directory):
     os.makedirs(directory)
+  print i, ': ', directory+'/'+local_name, '\n'
   urllib.urlretrieve(location, directory+'/'+local_name, reporthook)
+  print '\n', i, ' done, ', len(pairs)-i, ' to go'
