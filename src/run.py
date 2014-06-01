@@ -4,6 +4,7 @@ from xml.dom.minidom import parseString
 import urllib
 import time
 import sys
+import os
 print sys.getdefaultencoding()
 
 def returnURL(node):
@@ -13,6 +14,9 @@ def returnURL(node):
 def getFilenameFromURL(url):
   filename = url.rpartition('/')[2]
   return filename
+
+def getLength(node):
+  return 1
 
 def returnTitle(node):
   title = node.getElementsByTagName('title')[0].toxml()
@@ -31,40 +35,41 @@ def reporthook(count, block_size, total_size):
     (percent, progress_size / (1024 * 1024), speed, duration))
   sys.stdout.flush()
   
-  
-
-data = ''
-pairs = {}
+ 
 xmlPrefix = 'http://thebrewingnetwork.com/'
 download_prefix = 'http://s125483039.onlinehome.us/archive/'
 xmlFiles = ['brewstrong.xml', 'jamilshow.xml','lunchmeet.xml', 'sundayshow.xml', 'drhomebrew.xml', 'homebrewedchef.xml']
+
+
+
+data = ''
+pairs = {}
 for i in xmlFiles:
   f = urllib.urlopen(xmlPrefix + i)
   data = f.read()
   f.close()
   dom = parseString(data)
-  for things in dom.getElementsByTagName('item'):
-    title = returnTitle(things)
-    if title in pairs:
-      if pairs[title] == returnURL(things):
-	print 'panic: ' + title
+  for thing in dom.getElementsByTagName('item'):
+    length = getLength(thing)
+    title = returnTitle(thing)
+    URL = returnURL(thing)
+    URLFilename = getFilenameFromURL(URL)
+    if URLFilename in pairs:
+      print 'panic: ' + title +'; ' + URL
     else:
-      pairs[title] = returnURL(things)
+      pairs[URLFilename] = [title, URL, URLFilename, i]
+# for i in pairs:
+#   print i, ':\t', pairs[i][0]
 print len(pairs)
 
-"""
-for i in pairs:
-  print 'key is:\t', i, '\tvalue is:\t', pairs[i]
-"""
-"""
-tmp_key = 'The Session 03-24-14 Left Hand Brewing'
-print 'key is:\t', tmp_key, '\nvalue is:\t', pairs[tmp_key]
-print 'key is:\t', tmp_key, '\nvalue is:\t', pairs[tmp_key].rpartition('/')[2]
-filename = pairs[tmp_key].rpartition('/')[2]
-location = download_prefix + filename
+tmp_key = 'cybi01-31-11.mp3'
+location = download_prefix + tmp_key
 print 'key is:\t', tmp_key, '\nlocation is:\t', location
-local_name = tmp_key + '.mp3'
+local_name = pairs[tmp_key][0] + '.mp3'
+directory = '~/'+pairs[tmp_key][3].partition('.')[0]
+print directory
+if not os.path.exists(directory):
+  os.makedirs(directory)
 print 'key is:\t', tmp_key, '\nlocal_name is:\t', local_name
+urllib.urlretrieve(location, directory+'/'+local_name, reporthook)
 
-urllib.urlretrieve(location, local_name, reporthook)
-"""
