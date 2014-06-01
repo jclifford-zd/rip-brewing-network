@@ -60,16 +60,28 @@ for i in xmlFiles:
       pairs[URLFilename] = [title, URL, URLFilename, i]
 # for i in pairs:
 #   print i, ':\t', pairs[i][0]
-print len(pairs)
+# print len(pairs)
+i = 0
 
+for key in pairs:
+  print i, ' done, ', len(pairs)-i, ' to go\n'
+  i +=1
+  location = download_prefix + key
+  local_name = pairs[key][0] + '.mp3'
+  directory = pairs[key][3].partition('.')[0]
+  if not os.path.exists(directory):
+    os.makedirs(directory)
+  urllib.urlretrieve(location, directory+'/'+local_name, reporthook)
+"""
 tmp_key = 'cybi01-31-11.mp3'
 location = download_prefix + tmp_key
 print 'key is:\t', tmp_key, '\nlocation is:\t', location
 local_name = pairs[tmp_key][0] + '.mp3'
-directory = '~/'+pairs[tmp_key][3].partition('.')[0]
+directory = pairs[tmp_key][3].partition('.')[0]
 print directory
 if not os.path.exists(directory):
   os.makedirs(directory)
 print 'key is:\t', tmp_key, '\nlocal_name is:\t', local_name
 urllib.urlretrieve(location, directory+'/'+local_name, reporthook)
 
+"""
