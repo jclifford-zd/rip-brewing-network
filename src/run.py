@@ -4,6 +4,7 @@ from xml.dom.minidom import parseString
 import urllib
 import time
 import sys
+import string
 import os
 print sys.getdefaultencoding()
 
