@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from xml.dom.minidom import parseString
+import requests
 import urllib
 import time
 import sys
@@ -66,15 +67,32 @@ for i in xmlFiles:
       print 'panic: ' + title +'; ' + URL
     else:
       pairs[URLFilename] = [title, URL, URLFilename, i]
-i = 0
 
-for key in pairs:
-  i +=1
-  location = download_prefix + key
-  local_name = format_filename(pairs[key][0]) + '.mp3'
-  directory = pairs[key][3].partition('.')[0]
-  if not os.path.exists(directory):
-    os.makedirs(directory)
-  print i, ': ', directory+'/'+local_name, '\n'
-  urllib.urlretrieve(location, directory+'/'+local_name, reporthook)
-  print '\n', i, ' done, ', len(pairs)-i, ' to go'
+i = 0
+#for key in pairs:
+#  i +=1
+#  location = download_prefix + key
+#  local_name = format_filename(pairs[key][0]) + '.mp3'
+#  directory = pairs[key][3].partition('.')[0]
+#  if not os.path.exists(directory):
+#    os.makedirs(directory)
+#  print i, ': ', directory+'/'+local_name, '\n'
+#  urllib.urlretrieve(location, directory+'/'+local_name, reporthook)
+#  print '\n', i, ' done, ', len(pairs)-i, ' to go'
+
+key = 'bs_042814QA.mp3'
+location = download_prefix + key
+local_name = format_filename(pairs[key][0]) + '.mp3'
+directory = pairs[key][3].partition('.')[0]
+if not os.path.exists(directory):
+  os.makedirs(directory)
+print i, ': ', directory+'/'+local_name, '\n'
+r = requests.get(location, stream=True)
+with open(directory+'/'+local_name, 'wb') as fd:
+  for chunk in r.iter_content(chunk_size=512 * 1024):
+    fd.write(chunk)
+
+# urllib.urlretrieve(location, directory+'/'+local_name, reporthook)
+
+
+
