@@ -69,7 +69,6 @@ for i in xmlFiles:
       pairs[URLFilename] = [title, URL, URLFilename, i]
 
 i = 0
-'''
 for key in pairs:
   i +=1
   location = download_prefix + key
@@ -78,10 +77,19 @@ for key in pairs:
   if not os.path.exists(directory):
     os.makedirs(directory)
   print i, ': ', directory+'/'+local_name, '\n'
-  urllib.urlretrieve(location, directory+'/'+local_name, reporthook)
+  r = requests.get(location, stream=True)
+  total_length = r.headers.get('content-length')
+  dl = 0
+  with open(directory+'/'+local_name, 'wb') as fd:
+    for chunk in r.iter_content(chunk_size=1024):
+      dl += len(chunk)
+      fd.write(chunk)
+      done = int(50 * dl / int(total_length))
+      sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)))
+      sys.stdout.flush
   print '\n', i, ' done, ', len(pairs)-i, ' to go'
-'''
 
+'''
 key = 'bs_042814QA.mp3'
 location = download_prefix + key
 local_name = format_filename(pairs[key][0]) + '.mp3'
@@ -89,17 +97,7 @@ directory = pairs[key][3].partition('.')[0]
 if not os.path.exists(directory):
   os.makedirs(directory)
 print i, ': ', directory+'/'+local_name, '\n'
-
-r = requests.get(location, stream=True)
-total_length = r.headers.get('content-length')
-dl = 0
-with open(directory+'/'+local_name, 'wb') as fd:
-  for chunk in r.iter_content(chunk_size=1024):
-    dl += len(chunk)
-    fd.write(chunk)
-    done = int(50 * dl / int(total_length))
-    sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)))
-    sys.stdout.flush
+'''
 
 
 # urllib.urlretrieve(location, directory+'/'+local_name, reporthook)
