@@ -52,6 +52,7 @@ xmlFiles = ['brewstrong.xml', 'jamilshow.xml','lunchmeet.xml', 'sundayshow.xml',
 
 
 data = ''
+downloaded = 0
 pairs = {}
 for i in xmlFiles:
   f = urllib.urlopen(xmlPrefix + i)
@@ -66,14 +67,18 @@ for i in xmlFiles:
     if URLFilename in pairs:
       print 'panic: ' + title +'; ' + URL
     else:
-      pairs[URLFilename] = [title, URL, URLFilename, i]
+      pairs[URLFilename] = [title, i, downloaded]
+
+// check what files are downloaded
+
+
 
 i = 0
 for key in pairs:
-  i +=1
+  i += 1
   location = download_prefix + key
   local_name = format_filename(pairs[key][0]) + '.mp3'
-  directory = pairs[key][3].partition('.')[0]
+  directory = pairs[key][1].partition('.')[0]
   if not os.path.exists(directory):
     os.makedirs(directory)
   print i, ': ', directory+'/'+local_name, '\n'
