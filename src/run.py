@@ -53,6 +53,7 @@ xmlFiles = ['brewstrong.xml', 'jamilshow.xml','lunchmeet.xml', 'sundayshow.xml',
 
 data = ''
 downloaded = 0
+existingSize = 0
 pairs = {}
 for i in xmlFiles:
   f = urllib.urlopen(xmlPrefix + i)
@@ -67,11 +68,20 @@ for i in xmlFiles:
     if URLFilename in pairs:
       print 'panic: ' + title +'; ' + URL
     else:
-      pairs[URLFilename] = [title, i, downloaded]
+      pairs[URLFilename] = [title, i, downloaded, existingSize]
 
-// check what files are downloaded
-
-
+# check what files are downloaded
+for key in pairs:
+  local_name = format_filename(pairs[key][0]) + '.mp3'
+  directory = pairs[key][1].partition('.')[0]
+  if os.path.isfile(directory+'/'+local_name):
+    pairs[key][2] = 1
+    pairs[key][3] = os.path.getsize(directory+'/'+local_name)
+'''
+for keys,values in pairs.items():
+  print(keys)
+  print(values)
+'''
 
 i = 0
 for key in pairs:
@@ -84,15 +94,32 @@ for key in pairs:
   print i, ': ', directory+'/'+local_name, '\n'
   r = requests.get(location, stream=True)
   total_length = r.headers.get('content-length')
-  dl = 0
-  with open(directory+'/'+local_name, 'wb') as fd:
-    for chunk in r.iter_content(chunk_size=1024):
-      dl += len(chunk)
-      fd.write(chunk)
-      done = int(50 * dl / int(total_length))
-      sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)))
-      sys.stdout.flush
+  
+  if pairs[key][2]:
+#    print '\nlocal size: ' , pairs[key][3] , '\n  remote size: ' , total_length
+    if pairs[key][3] < total_length:
+      dl = 0
+      with open(directory+'/'+local_name, 'wb') as fd:
+        for chunk in r.iter_content(chunk_size=1024):
+          dl += len(chunk)
+          fd.write(chunk)
+          done = int(50 * dl / int(total_length))
+          sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)))
+          sys.stdout.flush
+    else:
+      print 'Already done: ', directory+'/'+local_name
+  else:
+    dl = 0
+    with open(directory+'/'+local_name, 'wb') as fd:
+      for chunk in r.iter_content(chunk_size=1024):
+        dl += len(chunk)
+        fd.write(chunk)
+        done = int(50 * dl / int(total_length))
+        sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)))
+        sys.stdout.flush
+
   print '\n', i, ' done, ', len(pairs)-i, ' to go'
+
 
 '''
 key = 'bs_042814QA.mp3'
