@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from xml.dom.minidom import parseString
+from datetime import datetime
 import requests
 import urllib
 import time
@@ -23,6 +24,10 @@ def getLength(node):
 def returnTitle(node):
   title = node.getElementsByTagName('title')[0].toxml()
   return title.replace('<title>','').replace('</title>','')
+
+def returnPubDate(node):
+  title = node.getElementsByTagName('pubDate')[0].toxml()
+  return title.replace('<pubDate>','').replace('</pubDate>','')
 
 def reporthook(count, block_size, total_size):
   global start_time
@@ -58,9 +63,11 @@ def downloadFile(req, directory, local_name):
  
 xmlPrefix = 'http://thebrewingnetwork.com/'
 download_prefix = 'http://s125483039.onlinehome.us/archive/'
-xmlFiles = ['brewstrong.xml', 'jamilshow.xml','lunchmeet.xml', 'sundayshow.xml', 'drhomebrew.xml', 'homebrewedchef.xml']
+# xmlFiles = ['brewstrong.xml', 'jamilshow.xml','lunchmeet.xml', 'sundayshow.xml', 'drhomebrew.xml', 'homebrewedchef.xml']
+xmlFiles = ['brewstrong.xml', 'jamilshow.xml','lunchmeet.xml', 'sundayshow.xml', 'homebrewedchef.xml']
+# xmlFiles = ['homebrewedchef.xml']
 
-
+runDownload = 1
 
 data = ''
 downloaded = 0
@@ -75,15 +82,20 @@ for i in xmlFiles:
     length = getLength(thing)
     title = returnTitle(thing)
     URL = returnURL(thing)
+    pubDate = returnPubDate(thing)
+#    print pubDate
+    d = datetime.strptime(pubDate, '%a, %d %b %Y %H:%M:%S %Z')
+    pubDate = d.strftime('%Y-%m-%d')
+#    print pubDate
     URLFilename = getFilenameFromURL(URL)
     if URLFilename in pairs:
       print 'panic: ' + title +'; ' + URL
     else:
-      pairs[URLFilename] = [title, i, downloaded, existingSize]
+      pairs[URLFilename] = [title, i, downloaded, existingSize, pubDate]
 
 # check what files are downloaded
 for key in pairs:
-  local_name = format_filename(pairs[key][0]) + '.mp3'
+  local_name = pairs[key][4] + ' ' + format_filename(pairs[key][0]) + '.mp3'
   directory = pairs[key][1].partition('.')[0]
   if os.path.isfile(directory+'/'+local_name):
     pairs[key][2] = 1
@@ -98,7 +110,7 @@ i = 0
 for key in pairs:
   i += 1
   location = download_prefix + key
-  local_name = format_filename(pairs[key][0]) + '.mp3'
+  local_name = pairs[key][4] + ' ' + format_filename(pairs[key][0]) + '.mp3'
   local_length = pairs[key][3]
   directory = pairs[key][1].partition('.')[0]
   if not os.path.exists(directory):
@@ -109,14 +121,14 @@ for key in pairs:
   print 'pairs[key][2]:' , pairs[key][2], '\tlocal size: ' , local_length , '\tremote size: ' , remote_length
   if not pairs[key][2]:
     print 'Not down already, downloading'
-    downloadFile(r, directory, local_name)
+    if runDownload:
+      downloadFile(r, directory, local_name)
   elif (local_length < remote_length):
-#    print '(local_length < remote_length): ', (local_length < remote_length)
     print 'Local size less than remote size, downloading'
-    downloadFile(r, directory, local_name)
+    if runDownload:
+      downloadFile(r, directory, local_name)
   else:
     print 'Already done, local size: ' , pairs[key][3] , '\t  remote size: ' , remote_length
-
   print i, ' done, ', len(pairs)-i, ' to go\n'
 
 
