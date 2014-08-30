@@ -9,6 +9,7 @@ import time
 import sys
 import string
 import os
+import re
 
 def returnURL(node):
   url = node.getElementsByTagName('guid')[0].toxml()
@@ -45,6 +46,9 @@ def reporthook(count, block_size, total_size):
 def format_filename(s):
   valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
   filename = ''.join(c for c in s if c in valid_chars)
+  filename = re.sub(r'[0-9][0-9]?[-][0-9][0-9][-][0-9][0-9]', '-', filename)
+  filename = re.sub(r'[- ]*$', '', filename)
+  filename = re.sub(r'[\.]*$', '', filename)
   return filename
 
 def downloadFile(req, directory, local_name):
@@ -67,7 +71,7 @@ download_prefix = 'http://s125483039.onlinehome.us/archive/'
 xmlFiles = ['brewstrong.xml', 'jamilshow.xml','lunchmeet.xml', 'sundayshow.xml', 'homebrewedchef.xml']
 # xmlFiles = ['homebrewedchef.xml']
 
-runDownload = 1
+runDownload = 0
 
 data = ''
 downloaded = 0
@@ -83,7 +87,8 @@ for i in xmlFiles:
     title = returnTitle(thing)
     URL = returnURL(thing)
     pubDate = returnPubDate(thing)
-#    print pubDate
+    # add leading date from pubDate element
+    # want files to be sortable by name
     try:
       d = datetime.strptime(pubDate, '%a, %d %b %Y %H:%M:%S %Z')
     except ValueError:
@@ -96,10 +101,6 @@ for i in xmlFiles:
         pubDate = d.strftime('%Y-%m-%d ')
     else:
       pubDate = d.strftime('%Y-%m-%d ')
-
-
-    
-#    print pubDate
     URLFilename = getFilenameFromURL(URL)
     if URLFilename in pairs:
       print 'panic: ' + title +'; ' + URL
