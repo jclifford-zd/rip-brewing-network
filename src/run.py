@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from xml.dom.minidom import parseString
@@ -67,7 +68,7 @@ download_prefix = 'http://s125483039.onlinehome.us/archive/'
 xmlFiles = ['brewstrong.xml', 'jamilshow.xml','lunchmeet.xml', 'sundayshow.xml', 'homebrewedchef.xml']
 # xmlFiles = ['homebrewedchef.xml']
 
-runDownload = 1
+runDownload = 0
 
 data = ''
 downloaded = 0
@@ -84,8 +85,15 @@ for i in xmlFiles:
     URL = returnURL(thing)
     pubDate = returnPubDate(thing)
 #    print pubDate
-    d = datetime.strptime(pubDate, '%a, %d %b %Y %H:%M:%S %Z')
-    pubDate = d.strftime('%Y-%m-%d')
+    try:
+      d = datetime.strptime(pubDate, '%a, %d %b %Y %H:%M:%S %Z')
+    except ValueError:
+      pubDate = ''
+    else:
+      pubDate = d.strftime('%Y-%m-%d ')
+
+
+    
 #    print pubDate
     URLFilename = getFilenameFromURL(URL)
     if URLFilename in pairs:
@@ -95,7 +103,7 @@ for i in xmlFiles:
 
 # check what files are downloaded
 for key in pairs:
-  local_name = pairs[key][4] + ' ' + format_filename(pairs[key][0]) + '.mp3'
+  local_name = pairs[key][4] + format_filename(pairs[key][0]) + '.mp3'
   directory = pairs[key][1].partition('.')[0]
   if os.path.isfile(directory+'/'+local_name):
     pairs[key][2] = 1
@@ -110,7 +118,7 @@ i = 0
 for key in pairs:
   i += 1
   location = download_prefix + key
-  local_name = pairs[key][4] + ' ' + format_filename(pairs[key][0]) + '.mp3'
+  local_name = pairs[key][4] + format_filename(pairs[key][0]) + '.mp3'
   local_length = pairs[key][3]
   directory = pairs[key][1].partition('.')[0]
   if not os.path.exists(directory):
