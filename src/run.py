@@ -9,7 +9,6 @@ import time
 import sys
 import string
 import os
-print sys.getdefaultencoding()
 
 def returnURL(node):
   url = node.getElementsByTagName('guid')[0].toxml()
@@ -68,7 +67,7 @@ download_prefix = 'http://s125483039.onlinehome.us/archive/'
 xmlFiles = ['brewstrong.xml', 'jamilshow.xml','lunchmeet.xml', 'sundayshow.xml', 'homebrewedchef.xml']
 # xmlFiles = ['homebrewedchef.xml']
 
-runDownload = 0
+runDownload = 1
 
 data = ''
 downloaded = 0
@@ -88,7 +87,13 @@ for i in xmlFiles:
     try:
       d = datetime.strptime(pubDate, '%a, %d %b %Y %H:%M:%S %Z')
     except ValueError:
-      pubDate = ''
+      # try the full month name
+      try:
+        d = datetime.strptime(pubDate, '%a, %d %B %Y %H:%M:%S %Z')
+      except ValueError:
+        pubDate = ''
+      else:
+        pubDate = d.strftime('%Y-%m-%d ')
     else:
       pubDate = d.strftime('%Y-%m-%d ')
 
